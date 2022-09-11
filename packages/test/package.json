@@ -1,0 +1,11 @@
+{
+    "private": true,
+    "scripts": {
+        "test": "magie"
+    },
+    "dependencies": {
+        "@magie/plugin-svelte": "workspace:*",
+        "magie": "workspace:*"
+    },
+    "type": "module"
+}
