@@ -1,5 +1,5 @@
-// import { UserConfig as ViteConfig } from 'vite';
+import { UserConfig as ViteConfig, Plugin as VitePlugin } from 'vite';
 
 export default interface Plugin {
-    vite?: any;
+    vitePlugins?: VitePlugin | VitePlugin[];
 };

@@ -19,18 +19,45 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 
 // src/server/index.ts
-function createDevServer(config2) {
+var import_vite = require("vite");
+
+// src/setConfig.ts
+function setConfig(config) {
+  if (!config.vite)
+    config.vite = {};
+  if (!config.frontend)
+    config.frontend = true;
+  if (!config.backend)
+    config.backend = {};
+  if (!config.backend.entry)
+    config.backend.entry = "src/index.ts";
+  if (!config.vite.plugins)
+    config.vite.plugins = [];
+  if (!config.server)
+    config.server = {};
+  if (!config.server.port)
+    config.server.port = 3001;
+  config.plugins = [config.plugins].flat();
+  for (let plugin of config.plugins) {
+    plugin.vitePlugins && config.vite.plugins.push(plugin.vitePlugins);
+  }
 }
 
-// src/start.ts
-function start(config2) {
-  createDevServer(config2);
+// src/plugin/devPlugin.ts
+function devPlugin(config) {
+  return [
+    {
+      name: "@magie/server",
+      enforce: "post",
+      async configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          const module2 = await server.ssrLoadModule(config.backend.entry);
+          module2.default(req, res, next);
+        });
+      }
+    }
+  ];
 }
-
-// src/cli.ts
-var import_process = __toESM(require("process"), 1);
-var import_promises = require("fs/promises");
-var import_path = __toESM(require("path"), 1);
 
 // ../../node_modules/.pnpm/chalk@5.0.1/node_modules/chalk/source/vendor/ansi-styles/index.js
 var ANSI_BACKGROUND_OFFSET = 10;
@@ -500,34 +527,133 @@ var chalk = createChalk();
 var chalkStderr = createChalk({ level: stderrColor ? stderrColor.level : 0 });
 var source_default = chalk;
 
+// src/server/index.ts
+async function createDevServer(config) {
+  setConfig(config);
+  const viteServer = await (0, import_vite.createServer)({
+    ...config.vite,
+    server: {
+      port: config.server.port
+    },
+    plugins: [config.vite.plugins, devPlugin(config)]
+  });
+  viteServer.listen();
+  console.log(source_default.red("\u2713 ") + source_default.green("Magie dev server starts successfully on port ") + source_default.blue(config.server.port) + source_default.green("!"));
+}
+
 // src/cli.ts
+var import_process = require("process");
+var import_promises = require("fs/promises");
+var import_path2 = require("path");
 var import_commander = require("commander");
 var import_esbuild = require("esbuild");
-import_commander.program.option("-c, --config <file>");
-import_commander.program.parse();
-var cwd = import_process.default.cwd();
-var options = import_commander.program.opts();
-var {
-  config: configFile = "magie.config.ts"
-} = options;
-(async () => {
+
+// src/build/index.ts
+var import_vite2 = require("vite");
+
+// src/plugin/buildPlugin.ts
+var import_path = require("path");
+function buildPlugin(config) {
+  return [
+    {
+      name: "@magie/build",
+      enforce: "pre",
+      async resolveId(id) {
+        if (id === "/virtual:magie-connect-handler") {
+          return this.resolve(config.backend.entry);
+        } else if (id === "/virtual:magie-connect-server") {
+          if (config.frontend) {
+            return (0, import_path.resolve)("/workspace/magie/packages/magie/src", "build/standalone/frontend.ts");
+          } else {
+            return (0, import_path.resolve)("/workspace/magie/packages/magie/src", "build/standalone/non-frontend.ts");
+          }
+        }
+      },
+      config() {
+        return {
+          build: {
+            rollupOptions: {
+              input: "/virtual:magie-connect-server",
+              external: ["http"],
+              output: {
+                format: "esm",
+                entryFileNames: "server.js"
+              }
+            },
+            assetsDir: ".",
+            minify: false
+          }
+        };
+      }
+    }
+  ];
+}
+
+// src/build/index.ts
+async function build(config) {
+  setConfig(config);
+  console.log(source_default.blue("\u2605 Magie build starts."));
+  if (config.frontend) {
+    console.log(source_default.yellow("\nBuilding frontend..."));
+    await (0, import_vite2.build)({
+      ...config.vite,
+      build: {
+        outDir: "dist/static"
+      }
+    });
+    console.log(source_default.green("\n\u2714\uFE0E Frontend has been build successfully!"));
+  }
+  console.log(source_default.yellow("\nBuilding backend..."));
+  await (0, import_vite2.build)({
+    ...config.vite,
+    plugins: [config.vite.plugins, buildPlugin(config)],
+    build: {
+      emptyOutDir: false
+    }
+  });
+  console.log(source_default.green("\n\u2714\uFE0E Backend has been build successfully!"));
+}
+
+// src/cli.ts
+import_commander.program.name("magie").description("A fullstack framework powered by vite.").option("-c, --config <file>");
+import_commander.program.action(startDevServer);
+var options;
+async function getConfig() {
+  const cwd = (0, import_process.cwd)();
+  const {
+    config: configFile = "magie.config.ts"
+  } = options;
   CheckFileExist: {
-    const configFileFullPath = import_path.default.resolve(cwd, configFile);
+    const configFileFullPath = (0, import_path2.resolve)(cwd, configFile);
     try {
       await (0, import_promises.stat)(configFileFullPath);
     } catch (err) {
       console.error(source_default.red(`Magie config file '${configFile}' not detected!`));
       break CheckFileExist;
     }
-    const targetConfigFilePath = import_path.default.resolve(cwd, "./node_modules/.megia/config.mjs");
+    const targetConfigFilePath = (0, import_path2.resolve)(cwd, "./node_modules/.megia/config.mjs");
     const transformedConfigFileContent = await (0, import_esbuild.build)({
       entryPoints: [configFileFullPath],
       outfile: targetConfigFilePath,
       format: "esm",
-      absWorkingDir: import_process.default.cwd(),
+      absWorkingDir: (0, import_process.cwd)(),
       platform: "node"
     });
-    const config2 = (await import(targetConfigFilePath)).default;
-    start(config2);
+    const config = (await import(targetConfigFilePath)).default;
+    return config;
   }
-})();
+}
+async function startDevServer() {
+  const config = await getConfig();
+  await createDevServer(config);
+}
+import_commander.program.command("build").action(async () => {
+  const config = await getConfig();
+  await build(config);
+});
+import_commander.program.command("prod").alias("serve").action(async () => {
+  const cwd = (0, import_process.cwd)();
+  await import((0, import_path2.resolve)(cwd, "dist/server.js"));
+});
+options = import_commander.program.opts();
+import_commander.program.parse();

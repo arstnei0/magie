@@ -1,27 +1,33 @@
 #!/usr/bin/env node --input-type=module
 /// <reference types="node" />
 
-import { start, MagieConfig } from '.';
-import process, { config } from "process";
+import { MagieConfig, createDevServer } from '.';
+import { cwd as processCwd } from "process";
 import { readFile, stat } from 'fs/promises';
-import path from "path";
+import { resolve as pathResolve } from "path";
 import chalk from "chalk";
 import { program } from 'commander';
-import { build } from 'esbuild';
+import { build as esBuild } from 'esbuild';
 import { loadConfigFromFile, ConfigEnv } from 'vite';
+import build from './build';
 
-program.option('-c, --config <file>');
-program.parse();
-const cwd = process.cwd();
-const options = program.opts();
+program
+    .name('magie')
+    .description('A fullstack framework powered by vite.')
+    .option('-c, --config <file>');
 
-let {
-    config: configFile = 'magie.config.ts',
-} = options;
+program
+    .action(startDevServer);
 
-(async () => {
+let options;
+
+async function getConfig() {
+    const cwd = processCwd();
+    const {
+        config: configFile = 'magie.config.ts'
+    } = options
     CheckFileExist : {
-        const configFileFullPath = path.resolve(cwd, configFile);
+        const configFileFullPath = pathResolve(cwd, configFile);
         try {
             await stat(configFileFullPath);
         } catch (err) {
@@ -29,22 +35,37 @@ let {
             break CheckFileExist;
         }
         
-        const targetConfigFilePath = path.resolve(cwd, './node_modules/.megia/config.mjs');
-        const transformedConfigFileContent = await build({
+        const targetConfigFilePath = pathResolve(cwd, './node_modules/.megia/config.mjs');
+        const transformedConfigFileContent = await esBuild({
             entryPoints: [configFileFullPath],
             outfile: targetConfigFilePath,
             format: 'esm',
-            absWorkingDir: process.cwd(),
+            absWorkingDir: processCwd(),
             platform: 'node'
         });
 
         const config : MagieConfig = (await import(targetConfigFilePath)).default;
-        // const config = await loadConfigFromFile({
-        //     command: 'serve',
-        //     mode: 'dev',
-        // }, configFile)
-
-        start(config);
-        // console.log(config.plugins?.[0].vite.plugins[0])
+        return config;
     }
-})();
+}
+
+async function startDevServer () {
+    const config = await getConfig();
+    await createDevServer(config);
+}
+
+program.command('build')
+    .action(async () => {
+        const config = await getConfig();
+        await build(config);
+    });
+
+program.command('prod')
+    .alias('serve')
+    .action(async () => {
+        const cwd = processCwd();
+        await import(pathResolve(cwd, 'dist/server.js'));
+    });
+
+options = program.opts();
+program.parse();

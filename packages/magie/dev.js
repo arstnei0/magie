@@ -1,4 +1,13 @@
 import { build } from "tsup";
+import path from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const define = {
+    __dirname: `"${path.resolve(__dirname, 'src')}"`
+};
 
 build({
     entry: ['src/cli.ts'],
@@ -6,6 +15,7 @@ build({
     outDir: 'bin',
     platform: 'node',
     noExternal: ['chalk'],
+    define,
 });
 
 build({
@@ -13,5 +23,6 @@ build({
     watch: true,
     format: ['esm'],
     dts: true,
-    external: ['vite']
+    external: ['vite'],
+    define,
 });
