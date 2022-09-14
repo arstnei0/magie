@@ -1,11 +1,13 @@
 {
     "private": true,
     "scripts": {
-        "test": "magie"
+        "test": "magie build && magie prod"
     },
     "dependencies": {
-        "@magie/plugin-svelte": "workspace:*",
-        "magie": "workspace:*"
+        "@magie/plugin-vue": "workspace:*",
+        "magie": "workspace:*",
+        "typescript": "^4.8.3",
+        "vue": "^3.2.39"
     },
     "type": "module"
 }

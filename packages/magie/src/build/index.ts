@@ -1,8 +1,10 @@
 import MagieConfig from "../types/MagieConfig";
 import { build as viteBuild } from "vite";
 import setConfig from "../setConfig";
-import buildPlugin from "../plugin/buildPlugin";
 import chalk from "chalk";
+import { build as esBuild } from 'esbuild';
+import { resolve as pathResolve } from "path";
+import { cwd as processCwd } from "process";
 
 export default async function build(config: MagieConfig) {
     setConfig(config);
@@ -13,7 +15,7 @@ export default async function build(config: MagieConfig) {
         console.log(chalk.yellow('\nBuilding frontend...'));
 
         await viteBuild({
-            ...config.vite,
+            ...config.__MagieVite,
             build: {
                 outDir: 'dist/static'
             }
@@ -24,13 +26,26 @@ export default async function build(config: MagieConfig) {
 
     console.log(chalk.yellow('\nBuilding backend...'));
 
-    await viteBuild({
-        ...config.vite,
-        plugins: [config.vite.plugins, buildPlugin(config)],
-        build: {
-            emptyOutDir: false
-        }
+    await esBuild({
+        entryPoints: [config.frontend ?
+            pathResolve(__dirname, 'build/standalone/frontend.ts') :
+            pathResolve(__dirname, 'build/standalone/non-frontend.ts')
+        ],
+        platform: 'node',
+        format: 'esm',
+        bundle: true,
+        plugins: [{
+            name: 'magie/server',
+            setup (build) {
+                build.onResolve({ filter: /^\/virtual:magie-connect-handler$/ }, (args) => {
+                    return {
+                        path: pathResolve(processCwd(), config.backend.entry)
+                    };
+                });
+            },
+        }],
+        outfile: pathResolve(processCwd(), 'dist/server.mjs'),
     });
 
-    console.log(chalk.green('\n✔︎ Backend has been build successfully!'))
+    console.log(chalk.green('\n✔︎ Backend has been build successfully!'));
 }

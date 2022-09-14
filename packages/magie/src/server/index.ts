@@ -8,11 +8,11 @@ export async function createDevServer(config: MagieConfig) {
     setConfig(config);
 
     const viteServer = await createViteServer({
-        ...config.vite,
+        ...config.__MagieVite,
         server: {
             port: config.server.port
         },
-        plugins: [config.vite.plugins, devPlugin(config)]
+        plugins: [config.__MagieVite.plugins, devPlugin(config)]
     });
 
     viteServer.listen();

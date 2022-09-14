@@ -1,6 +1,6 @@
 import { defineConfig } from 'magie';
-import svelte from '@magie/plugin-svelte';
+import vue from '@magie/plugin-vue';
 
 export default defineConfig({
-    plugins: [svelte()],
+    plugins: [vue()],
 });

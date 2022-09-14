@@ -17,9 +17,20 @@ function setConfig(config) {
     config.server = {};
   if (!config.server.port)
     config.server.port = 3001;
+  if (!config.__MagieVite)
+    config.__MagieVite = {};
+  if (!config.__MagieVite.plugins)
+    config.__MagieVite.plugins = [];
   config.plugins = [config.plugins].flat();
   for (let plugin of config.plugins) {
-    plugin.vitePlugins && config.vite.plugins.push(plugin.vitePlugins);
+    if (plugin.vite) {
+      for (let i in plugin.vite) {
+        if (i === "plugins")
+          continue;
+        config.__MagieVite[i] = plugin[i];
+      }
+      plugin.vite.plugins && config.__MagieVite.plugins.push(plugin.vite.plugins);
+    }
   }
 }
 
@@ -44,11 +55,11 @@ import chalk from "chalk";
 async function createDevServer(config) {
   setConfig(config);
   const viteServer = await createViteServer({
-    ...config.vite,
+    ...config.__MagieVite,
     server: {
       port: config.server.port
     },
-    plugins: [config.vite.plugins, devPlugin(config)]
+    plugins: [config.__MagieVite.plugins, devPlugin(config)]
   });
   viteServer.listen();
   console.log(chalk.red("\u2713 ") + chalk.green("Magie dev server starts successfully on port ") + chalk.blue(config.server.port) + chalk.green("!"));

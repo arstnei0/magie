@@ -1,7 +1,7 @@
-import { Plugin as Plugin$1, UserConfig } from 'vite';
+import { UserConfig } from 'vite';
 
 interface Plugin {
-    vitePlugins?: Plugin$1 | Plugin$1[];
+    vite?: UserConfig;
 }
 
 interface MagieConfig {
@@ -14,6 +14,7 @@ interface MagieConfig {
     server?: {
         port?: number;
     };
+    __MagieVite?: UserConfig;
 }
 
 declare function createDevServer(config: MagieConfig): Promise<void>;

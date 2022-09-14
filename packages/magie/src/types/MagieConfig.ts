@@ -10,5 +10,6 @@ export default interface MagieConfig {
     vite?: ViteConfig,
     server?: {
         port?: number
-    }
+    },
+    __MagieVite?: ViteConfig,
 };

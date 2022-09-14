@@ -41,7 +41,9 @@ async function getConfig() {
             outfile: targetConfigFilePath,
             format: 'esm',
             absWorkingDir: processCwd(),
-            platform: 'node'
+            platform: 'node',
+            // bundle: true,
+            // external: ['@magie/plugin-*']
         });
 
         const config : MagieConfig = (await import(targetConfigFilePath)).default;
@@ -64,7 +66,7 @@ program.command('prod')
     .alias('serve')
     .action(async () => {
         const cwd = processCwd();
-        await import(pathResolve(cwd, 'dist/server.js'));
+        await import(pathResolve(cwd, 'dist/server.mjs'));
     });
 
 options = program.opts();
