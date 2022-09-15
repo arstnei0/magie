@@ -1,7 +1,8 @@
-import { UserConfig } from 'vite';
+import { Plugin as Plugin$1, UserConfig } from 'vite';
+import { Plugin as Plugin$2 } from 'esbuild';
 
-interface Plugin {
-    vite?: UserConfig;
+interface Plugin extends Plugin$1 {
+    backendEsbuildPlugins?: Plugin$2;
 }
 
 interface MagieConfig {

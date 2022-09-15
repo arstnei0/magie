@@ -8,19 +8,17 @@ export default function setConfig(config: MagieConfig) {
     if (!config.vite.plugins) config.vite.plugins = [];
     if (!config.server) config.server = {};
     if (!config.server.port) config.server.port = 3001;
-    if (!config.__MagieVite) config.__MagieVite = {};
-    if (!config.__MagieVite.plugins) config.__MagieVite.plugins = [];
+    if (!config.plugins) config.plugins = [];
     
-    // TODO: deal with plugins
-    config.plugins = [config.plugins].flat();
-    for (let plugin of config.plugins) {
-        if (plugin.vite) {
-            for (let i in plugin.vite) {
-                if (i === 'plugins') continue;
-                config.__MagieVite[i] = plugin[i];
-            }
+    // config.plugins = [config.plugins].flat();
+    // for (let plugin of config.plugins) {
+    //     if (plugin.vite) {
+    //         for (let i in plugin.vite) {
+    //             if (i === 'plugins') continue;
+    //             config.__MagieVite[i] = plugin[i];
+    //         }
             
-            plugin.vite.plugins && config.__MagieVite.plugins.push(plugin.vite.plugins);
-        }
-    }
+    //         plugin.vite.plugins && config.__MagieVite.plugins.push(plugin.vite.plugins);
+    //     }
+    // }
 }

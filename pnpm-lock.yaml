@@ -59,12 +59,12 @@ importers:
 
   packages/test:
     specifiers:
-      '@magie/plugin-vue': workspace:*
+      '@vitejs/plugin-vue': ^3.1.0
       magie: workspace:*
       typescript: ^4.8.3
       vue: ^3.2.39
     dependencies:
-      '@magie/plugin-vue': link:../magie-plugin-vue
+      '@vitejs/plugin-vue': 3.1.0_vue@3.2.39
       magie: link:../magie
       typescript: 4.8.3
       vue: 3.2.39

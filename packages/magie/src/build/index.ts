@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { build as esBuild } from 'esbuild';
 import { resolve as pathResolve } from "path";
 import { cwd as processCwd } from "process";
+import Plugin from "../types/Plugin";
 
 export default async function build(config: MagieConfig) {
     setConfig(config);
@@ -15,16 +16,22 @@ export default async function build(config: MagieConfig) {
         console.log(chalk.yellow('\nBuilding frontend...'));
 
         await viteBuild({
-            ...config.__MagieVite,
+            ...config.vite,
             build: {
                 outDir: 'dist/static'
-            }
+            },
+            plugins: [config.vite.plugins, config.plugins]
         });
 
         console.log(chalk.green('\n✔︎ Frontend has been build successfully!'))
     }
 
     console.log(chalk.yellow('\nBuilding backend...'));
+
+    const esbuildPlugins = [];
+    for (let plugin of [config.plugins].flat(100)) {
+        if ((plugin as Plugin).backendEsbuildPlugins) esbuildPlugins.push((plugin as Plugin).backendEsbuildPlugins);
+    }
 
     await esBuild({
         entryPoints: [config.frontend ?
@@ -34,16 +41,19 @@ export default async function build(config: MagieConfig) {
         platform: 'node',
         format: 'esm',
         bundle: true,
-        plugins: [{
-            name: 'magie/server',
-            setup (build) {
-                build.onResolve({ filter: /^\/virtual:magie-connect-handler$/ }, (args) => {
-                    return {
-                        path: pathResolve(processCwd(), config.backend.entry)
-                    };
-                });
+        plugins: [
+            ...esbuildPlugins,
+            {
+                name: 'magie/server',
+                setup (build) {
+                    build.onResolve({ filter: /^\/virtual:magie-connect-handler$/ }, (args) => {
+                        return {
+                            path: pathResolve(processCwd(), config.backend.entry)
+                        };
+                    });
+                },
             },
-        }],
+        ],
         outfile: pathResolve(processCwd(), 'dist/server.mjs'),
     });
 

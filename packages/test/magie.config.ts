@@ -1,5 +1,5 @@
 import { defineConfig } from 'magie';
-import vue from '@magie/plugin-vue';
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
     plugins: [vue()],

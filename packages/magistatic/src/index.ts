@@ -3,12 +3,15 @@ import { cwd as processCwd } from 'process';
 import { resolve as pathResolve } from 'path';
 import { createReadStream, statSync } from 'fs';
 import { getType } from 'mime';
+import { createGzip } from 'zlib';
 
 export interface Config {
-    root: string;
-    cwd: string;
-    autoIndex: boolean;
-    errHandler: (IncomingMessage, ServerResponse) => any | Promise<any>;
+    root?: string;
+    cwd?: string;
+    autoIndex?: boolean;
+    errHandler?: (IncomingMessage, ServerResponse) => any | Promise<any>;
+    gzip?: string[] | boolean;
+    cache?: number;
 }
 
 function defaultErrHandler (req: IncomingMessage, res: ServerResponse) {
@@ -22,6 +25,8 @@ export default function createStaticServer(config: Config) {
         cwd = processCwd(),
         autoIndex = true,
         errHandler = defaultErrHandler,
+        gzip = true,
+        cache = 3600,
     } = config;
 
     let basePath;
@@ -48,10 +53,27 @@ export default function createStaticServer(config: Config) {
                 break checkPathExists;
             }
             const tpyeOfFile = getType(pathUrl);
-            res.writeHead(200, { 'Content-Type': tpyeOfFile });
+
+            let gzipNeed;
+            if (gzip === true) {
+                gzipNeed = true;
+            } else gzipNeed = !!(gzip as string[]).find(e => e === tpyeOfFile);
+
+            const headers = gzipNeed ? 
+                { "Content-Encoding": 'gzip' } :
+                {};
+
+            if (cache) headers['Cache-Control'] = `max-age=${cache}`;
+            res.writeHead(200, { 'Content-Type': tpyeOfFile, ...headers });
             
             const stream = createReadStream(path);
-            stream.pipe(res);
+            if (gzipNeed) {
+                let gzipStream = createGzip();
+                stream.pipe(gzipStream);
+                gzipStream.pipe(res);
+            } else {
+                stream.pipe(res);
+            }
             return;
         }
 

@@ -110,6 +110,7 @@ var import_mime = __toESM(require_mime(), 1);
 import { cwd as processCwd } from "process";
 import { resolve as pathResolve } from "path";
 import { createReadStream, statSync } from "fs";
+import { createGzip } from "zlib";
 function defaultErrHandler(req, res) {
   res.writeHead(404, "404 Not Found!");
   res.end("404 Not Found!");
@@ -119,7 +120,9 @@ function createStaticServer(config) {
     root = "static",
     cwd = processCwd(),
     autoIndex = true,
-    errHandler = defaultErrHandler
+    errHandler = defaultErrHandler,
+    gzip = true,
+    cache = 3600
   } = config;
   let basePath;
   if (/dist\/?$/i.test(cwd)) {
@@ -142,9 +145,23 @@ function createStaticServer(config) {
         break checkPathExists;
       }
       const tpyeOfFile = (0, import_mime.getType)(pathUrl);
-      res.writeHead(200, { "Content-Type": tpyeOfFile });
+      let gzipNeed;
+      if (gzip === true) {
+        gzipNeed = true;
+      } else
+        gzipNeed = !!gzip.find((e) => e === tpyeOfFile);
+      const headers = gzipNeed ? { "Content-Encoding": "gzip" } : {};
+      if (cache)
+        headers["Cache-Control"] = `max-age=${cache}`;
+      res.writeHead(200, { "Content-Type": tpyeOfFile, ...headers });
       const stream = createReadStream(path);
-      stream.pipe(res);
+      if (gzipNeed) {
+        let gzipStream = createGzip();
+        stream.pipe(gzipStream);
+        gzipStream.pipe(res);
+      } else {
+        stream.pipe(res);
+      }
       return;
     }
     errHandler(req, res);

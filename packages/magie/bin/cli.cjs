@@ -37,21 +37,8 @@ function setConfig(config) {
     config.server = {};
   if (!config.server.port)
     config.server.port = 3001;
-  if (!config.__MagieVite)
-    config.__MagieVite = {};
-  if (!config.__MagieVite.plugins)
-    config.__MagieVite.plugins = [];
-  config.plugins = [config.plugins].flat();
-  for (let plugin of config.plugins) {
-    if (plugin.vite) {
-      for (let i in plugin.vite) {
-        if (i === "plugins")
-          continue;
-        config.__MagieVite[i] = plugin[i];
-      }
-      plugin.vite.plugins && config.__MagieVite.plugins.push(plugin.vite.plugins);
-    }
-  }
+  if (!config.plugins)
+    config.plugins = [];
 }
 
 // src/plugin/devPlugin.ts
@@ -542,11 +529,11 @@ var source_default = chalk;
 async function createDevServer(config) {
   setConfig(config);
   const viteServer = await (0, import_vite.createServer)({
-    ...config.__MagieVite,
+    ...config.vite,
     server: {
       port: config.server.port
     },
-    plugins: [config.__MagieVite.plugins, devPlugin(config)]
+    plugins: [config.plugins, devPlugin(config)]
   });
   viteServer.listen();
   console.log(source_default.red("\u2713 ") + source_default.green("Magie dev server starts successfully on port ") + source_default.blue(config.server.port) + source_default.green("!"));
@@ -570,14 +557,20 @@ async function build(config) {
   if (config.frontend) {
     console.log(source_default.yellow("\nBuilding frontend..."));
     await (0, import_vite2.build)({
-      ...config.__MagieVite,
+      ...config.vite,
       build: {
         outDir: "dist/static"
-      }
+      },
+      plugins: [config.vite.plugins, config.plugins]
     });
     console.log(source_default.green("\n\u2714\uFE0E Frontend has been build successfully!"));
   }
   console.log(source_default.yellow("\nBuilding backend..."));
+  const esbuildPlugins = [];
+  for (let plugin of [config.plugins].flat(100)) {
+    if (plugin.backendEsbuildPlugins)
+      esbuildPlugins.push(plugin.backendEsbuildPlugins);
+  }
   await (0, import_esbuild.build)({
     entryPoints: [
       config.frontend ? (0, import_path.resolve)("/workspace/magie/packages/magie/src", "build/standalone/frontend.ts") : (0, import_path.resolve)("/workspace/magie/packages/magie/src", "build/standalone/non-frontend.ts")
@@ -585,16 +578,19 @@ async function build(config) {
     platform: "node",
     format: "esm",
     bundle: true,
-    plugins: [{
-      name: "magie/server",
-      setup(build2) {
-        build2.onResolve({ filter: /^\/virtual:magie-connect-handler$/ }, (args) => {
-          return {
-            path: (0, import_path.resolve)((0, import_process.cwd)(), config.backend.entry)
-          };
-        });
+    plugins: [
+      ...esbuildPlugins,
+      {
+        name: "magie/server",
+        setup(build2) {
+          build2.onResolve({ filter: /^\/virtual:magie-connect-handler$/ }, (args) => {
+            return {
+              path: (0, import_path.resolve)((0, import_process.cwd)(), config.backend.entry)
+            };
+          });
+        }
       }
-    }],
+    ],
     outfile: (0, import_path.resolve)((0, import_process.cwd)(), "dist/server.mjs")
   });
   console.log(source_default.green("\n\u2714\uFE0E Backend has been build successfully!"));
