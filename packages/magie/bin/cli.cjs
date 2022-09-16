@@ -540,17 +540,40 @@ async function createDevServer(config) {
 }
 
 // src/cli.ts
-var import_process2 = require("process");
-var import_promises = require("fs/promises");
-var import_path2 = require("path");
+var import_process3 = require("process");
+var import_promises2 = require("fs/promises");
+var import_path3 = require("path");
 var import_commander = require("commander");
-var import_esbuild2 = require("esbuild");
+var import_esbuild = require("esbuild");
 
 // src/build/index.ts
 var import_vite2 = require("vite");
-var import_esbuild = require("esbuild");
+var import_path2 = require("path");
+var import_process2 = require("process");
+
+// src/plugin/buildPlugin.ts
 var import_path = require("path");
 var import_process = require("process");
+function buildPlugin(config) {
+  return [
+    {
+      name: "magie-build",
+      resolveId(id) {
+        if (id === "/virtual:magie-connect-handler") {
+          return (0, import_path.resolve)((0, import_process.cwd)(), config.backend.entry);
+        }
+      }
+    }
+  ];
+}
+
+// src/build/write.ts
+var import_promises = require("fs/promises");
+async function writeOutput(content, path) {
+  await (0, import_promises.writeFile)(path, content);
+}
+
+// src/build/index.ts
 async function build(config) {
   setConfig(config);
   console.log(source_default.blue("\u2605 Magie build starts."));
@@ -571,28 +594,22 @@ async function build(config) {
     if (plugin.backendEsbuildPlugins)
       esbuildPlugins.push(plugin.backendEsbuildPlugins);
   }
-  await (0, import_esbuild.build)({
-    entryPoints: [
-      config.frontend ? (0, import_path.resolve)("/workspace/magie/packages/magie/src", "build/standalone/frontend.ts") : (0, import_path.resolve)("/workspace/magie/packages/magie/src", "build/standalone/non-frontend.ts")
-    ],
-    platform: "node",
-    format: "esm",
-    bundle: true,
-    plugins: [
-      ...esbuildPlugins,
-      {
-        name: "magie/server",
-        setup(build2) {
-          build2.onResolve({ filter: /^\/virtual:magie-connect-handler$/ }, (args) => {
-            return {
-              path: (0, import_path.resolve)((0, import_process.cwd)(), config.backend.entry)
-            };
-          });
-        }
-      }
-    ],
-    outfile: (0, import_path.resolve)((0, import_process.cwd)(), "dist/server.mjs")
-  });
+  const fileContent = (await (0, import_vite2.build)({
+    ...config.vite,
+    build: {
+      ssr: config.frontend ? (0, import_path2.resolve)("/workspace/magie/packages/magie/src", "build/standalone/frontend.ts") : (0, import_path2.resolve)("/workspace/magie/packages/magie/src", "build/standalone/non-frontend.ts"),
+      emptyOutDir: false,
+      write: false
+    },
+    ssr: {
+      target: "node",
+      format: "esm"
+    },
+    plugins: [config.vite.plugins, config.plugins, buildPlugin(config)]
+  })).output[0].code;
+  const outFilePath = (0, import_path2.resolve)((0, import_process2.cwd)(), "dist/server.mjs");
+  console.log(source_default.yellow("Writing server file..."));
+  await writeOutput(fileContent, outFilePath);
   console.log(source_default.green("\n\u2714\uFE0E Backend has been build successfully!"));
 }
 
@@ -601,24 +618,24 @@ import_commander.program.name("magie").description("A fullstack framework powere
 import_commander.program.action(startDevServer);
 var options;
 async function getConfig() {
-  const cwd = (0, import_process2.cwd)();
+  const cwd = (0, import_process3.cwd)();
   const {
     config: configFile = "magie.config.ts"
   } = options;
   CheckFileExist: {
-    const configFileFullPath = (0, import_path2.resolve)(cwd, configFile);
+    const configFileFullPath = (0, import_path3.resolve)(cwd, configFile);
     try {
-      await (0, import_promises.stat)(configFileFullPath);
+      await (0, import_promises2.stat)(configFileFullPath);
     } catch (err) {
       console.error(source_default.red(`Magie config file '${configFile}' not detected!`));
       break CheckFileExist;
     }
-    const targetConfigFilePath = (0, import_path2.resolve)(cwd, "./node_modules/.megia/config.mjs");
-    const transformedConfigFileContent = await (0, import_esbuild2.build)({
+    const targetConfigFilePath = (0, import_path3.resolve)(cwd, "./node_modules/.megia/config.mjs");
+    const transformedConfigFileContent = await (0, import_esbuild.build)({
       entryPoints: [configFileFullPath],
       outfile: targetConfigFilePath,
       format: "esm",
-      absWorkingDir: (0, import_process2.cwd)(),
+      absWorkingDir: (0, import_process3.cwd)(),
       platform: "node"
     });
     const config = (await import(targetConfigFilePath)).default;
@@ -634,8 +651,8 @@ import_commander.program.command("build").action(async () => {
   await build(config);
 });
 import_commander.program.command("prod").alias("serve").action(async () => {
-  const cwd = (0, import_process2.cwd)();
-  await import((0, import_path2.resolve)(cwd, "dist/server.mjs"));
+  const cwd = (0, import_process3.cwd)();
+  await import((0, import_path3.resolve)(cwd, "dist/server.mjs"));
 });
 options = import_commander.program.opts();
 import_commander.program.parse();

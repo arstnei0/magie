@@ -1,1 +1,2 @@
-# Magie: A fullstack framework
+# Magie: 全栈Typescript解决方案
+

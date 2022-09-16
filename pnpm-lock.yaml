@@ -5,6 +5,16 @@ importers:
   .:
     specifiers: {}
 
+  examples/solidjs:
+    specifiers:
+      '@vitejs/plugin-vue': ^3.1.0
+      magie: workspace:^0.0.1
+      vue: ^3.2.39
+    dependencies:
+      '@vitejs/plugin-vue': 3.1.0_vue@3.2.39
+      magie: link:../../packages/magie
+      vue: 3.2.39
+
   packages/magie:
     specifiers:
       '@types/node': ^18.7.16

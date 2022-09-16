@@ -3,8 +3,28 @@ import { cwd } from "process";
 import { resolve } from "path";
 import { statSync, createReadStream } from "fs";
 import { createGzip } from "zlib";
+let messageList = [];
+function err(req, res) {
+  res.writeHead(404, "404 Not Found!");
+  res.end("404 Not Found!");
+}
 function handler(req, res, next) {
-  next();
+  var _a, _b;
+  const match = (_a = req.url) == null ? void 0 : _a.match(/^\/api\/(.+)\/?/i);
+  if (match) {
+    const query = match[1];
+    if (query === "message-list") {
+      res.end(JSON.stringify(messageList));
+    } else if (/^send\?m=(?:%27|%22)(.*)(?:%27|%22)/i.test(query)) {
+      const message = (_b = query.match(/^send\?m=(?:%27|%22)(.*)(?:%27|%22)/i)) == null ? void 0 : _b[1];
+      messageList = [message, ...messageList];
+      res.end("Send successfully");
+    } else {
+      err(req, res);
+    }
+  } else {
+    next();
+  }
 }
 function Mime$1() {
   this._types = /* @__PURE__ */ Object.create(null);
