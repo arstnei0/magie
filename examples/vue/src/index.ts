@@ -14,10 +14,11 @@ export default function handler(req: IncomingMessage, res: ServerResponse, next:
 
         if (query === 'message-list') {
             res.end(JSON.stringify(messageList));
-        } else if (/^send\?m=(?:%27|%22)(.*)(?:%27|%22)/i.test(query)) {
-            const message = query.match(/^send\?m=(?:%27|%22)(.*)(?:%27|%22)/i)?.[1] as string;
-            messageList = [message, ...messageList];
-            res.end('Send successfully');
+        } else if (/^send$/i.test(query)) {
+            req.on('data', (data) => {
+                messageList.push(data.toString());
+                res.end('Message send successfully!');
+            });
         } else {
             err(req, res);
         }

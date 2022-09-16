@@ -9,6 +9,7 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, watchEffect } from 'vue';
+import axios from 'axios';
 
 let messages = ref([]);
 onMounted(async () => {
@@ -18,7 +19,7 @@ onMounted(async () => {
 let sendingMessage = ref('');
 
 async function sendMessage() {
-    await fetch(`/api/send?m='${sendingMessage.value}'`);
+    await axios.post('/api/send', sendingMessage.value);
     messages.value = await (await fetch('/api/message-list')).json();
     sendingMessage.value = '';
 }

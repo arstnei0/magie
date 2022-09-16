@@ -9,16 +9,17 @@ function err(req, res) {
   res.end("404 Not Found!");
 }
 function handler(req, res, next) {
-  var _a, _b;
+  var _a;
   const match = (_a = req.url) == null ? void 0 : _a.match(/^\/api\/(.+)\/?/i);
   if (match) {
     const query = match[1];
     if (query === "message-list") {
       res.end(JSON.stringify(messageList));
-    } else if (/^send\?m=(?:%27|%22)(.*)(?:%27|%22)/i.test(query)) {
-      const message = (_b = query.match(/^send\?m=(?:%27|%22)(.*)(?:%27|%22)/i)) == null ? void 0 : _b[1];
-      messageList = [message, ...messageList];
-      res.end("Send successfully");
+    } else if (/^send$/i.test(query)) {
+      req.on("data", (data) => {
+        messageList.push(data.toString());
+        res.end("Message send successfully!");
+      });
     } else {
       err(req, res);
     }
