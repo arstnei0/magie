@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-vue": "^3.1.0",
-    "magie": "~0.0.1",
+    "magie": "~1.0.0",
     "vue": "^3.2.39"
   }
 }
