@@ -3,6 +3,7 @@ import { Plugin as Plugin$2 } from 'esbuild';
 
 interface Plugin extends Plugin$1 {
     backendEsbuildPlugins?: Plugin$2;
+    magieConfig?: (config: MagieConfig) => void | MagieConfig;
 }
 
 interface MagieConfig {

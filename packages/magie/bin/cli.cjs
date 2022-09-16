@@ -39,6 +39,12 @@ function setConfig(config) {
     config.server.port = 3001;
   if (!config.plugins)
     config.plugins = [];
+  config.plugins = [config.plugins].flat();
+  for (let plugin of config.plugins) {
+    if (plugin.magieConfig) {
+      config = { ...config, ...plugin.magieConfig(config) };
+    }
+  }
 }
 
 // src/plugin/devPlugin.ts
