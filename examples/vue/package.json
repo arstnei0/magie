@@ -2,15 +2,15 @@
   "name": "magie-vue-example",
   "version": "1.0.0",
   "scripts": {
-    "start": "magie",
-    "dev": "magie",
-    "build": "magie build",
-    "serve": "magie prod",
-    "prod": "magie build && magie prod"
+    "start": "npx magie",
+    "dev": "npx magie",
+    "build": "npx magie build",
+    "serve": "npx magie prod",
+    "prod": "npx magie build && npx magie prod"
   },
   "dependencies": {
     "@vitejs/plugin-vue": "^3.1.0",
-    "magie": "workspace:^0.0.1",
+    "magie": "~0.0.1",
     "vue": "^3.2.39"
   }
 }
