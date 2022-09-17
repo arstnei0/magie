@@ -1,4 +1,4 @@
-#!/usr/bin/env node --input-type=module
+#!/usr/bin/env node
 /// <reference types="node" />
 
 import { MagieConfig, createDevServer } from '.';

@@ -1,6 +1,6 @@
 {
     "name": "magie",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "scripts": {
         "build": "node dev.js",
         "dev": "node dev.js"
@@ -12,7 +12,7 @@
         "esbuild": "^0.15.7",
         "magistatic": "workspace:*",
         "typescript": "^4.8.3",
-        "vite": "^3.1.0"
+        "vite": "^3.0.0"
     },
     "devDependencies": {
         "tsup": "^6.2.3"
