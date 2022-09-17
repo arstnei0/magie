@@ -560,10 +560,11 @@ var import_process2 = require("process");
 // src/plugin/buildPlugin.ts
 var import_path = require("path");
 var import_process = require("process");
-function buildPlugin(config) {
+function buildPlugin(dirname2, config) {
   return [
     {
       name: "magie-build",
+      enforce: "pre",
       resolveId(id) {
         if (id === "/virtual:magie-connect-handler") {
           return (0, import_path.resolve)((0, import_process.cwd)(), config.backend.entry);
@@ -580,6 +581,7 @@ async function writeOutput(content, path) {
 }
 
 // src/build/index.ts
+var dirname = (0, import_path2.resolve)(__dirname, "../src");
 async function build(config) {
   setConfig(config);
   console.log(source_default.blue("\u2605 Magie build starts."));
@@ -601,9 +603,8 @@ async function build(config) {
       esbuildPlugins.push(plugin.backendEsbuildPlugins);
   }
   const fileContent = (await (0, import_vite2.build)({
-    ...config.vite,
     build: {
-      ssr: config.frontend ? (0, import_path2.resolve)("/workspace/magie/packages/magie/src", "build/standalone/frontend.ts") : (0, import_path2.resolve)("/workspace/magie/packages/magie/src", "build/standalone/non-frontend.ts"),
+      ssr: config.frontend ? (0, import_path2.resolve)(dirname, "build/standalone/frontend.ts") : (0, import_path2.resolve)(dirname, "build/standalone/non-frontend.ts"),
       emptyOutDir: false,
       write: false
     },
@@ -611,7 +612,7 @@ async function build(config) {
       target: "node",
       format: "esm"
     },
-    plugins: [config.vite.plugins, config.plugins, buildPlugin(config)]
+    plugins: [buildPlugin(dirname, config)]
   })).output[0].code;
   const outFilePath = (0, import_path2.resolve)((0, import_process2.cwd)(), "dist/server.mjs");
   console.log(source_default.yellow("Writing server file..."));

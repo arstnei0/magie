@@ -8,6 +8,12 @@ import { cwd as processCwd } from "process";
 import Plugin from "../types/Plugin";
 import buildPlugin from "../plugin/buildPlugin";
 import writeOutput from "./write";
+// import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// console.log(__dirname)
+const dirname = pathResolve(__dirname, '../src');
+// const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default async function build(config: MagieConfig) {
     setConfig(config);
@@ -34,13 +40,38 @@ export default async function build(config: MagieConfig) {
     for (let plugin of [config.plugins].flat(100)) {
         if ((plugin as Plugin).backendEsbuildPlugins) esbuildPlugins.push((plugin as Plugin).backendEsbuildPlugins);
     }
+    
+    // await esBuild({
+    //     entryPoints: [config.frontend ?
+    //         pathResolve(dirname, 'build/standalone/frontend.ts') :
+    //         pathResolve(dirname, 'build/standalone/non-frontend.ts')
+    //     ],
+    //     platform: 'node',
+    //     format: 'esm',
+    //     bundle: true,
+    //     plugins: [
+    //         ...esbuildPlugins,
+    //         {
+    //             name: 'magie/server',
+    //             setup (build) {
+    //                 build.onResolve({ filter: /^\/virtual:magie-connect-handler$/ }, (args) => {
+    //                     return {
+    //                         path: pathResolve(processCwd(), config.backend.entry)
+    //                     };
+    //                 });
+    //             },
+    //         },
+    //     ],
+    //     outfile: pathResolve(processCwd(), 'dist/server.mjs'),
+    // });
+
 
     const fileContent = ((await viteBuild({
-        ...config.vite,
+        // ...config.vite,
         build: {
-            ssr: config.frontend ?
-                    pathResolve(__dirname, 'build/standalone/frontend.ts') :
-                    pathResolve(__dirname, 'build/standalone/non-frontend.ts'),
+            ssr: (config.frontend ?
+                    pathResolve(dirname, 'build/standalone/frontend.ts') :
+                    pathResolve(dirname, 'build/standalone/non-frontend.ts')),
             emptyOutDir: false,
             write: false,
         },
@@ -48,7 +79,7 @@ export default async function build(config: MagieConfig) {
             target: 'node',
             format: 'esm',
         },
-        plugins: [config.vite.plugins, config.plugins, buildPlugin(config)],
+        plugins: [buildPlugin(dirname, config)],
     })) as any).output[0].code;
 
     const outFilePath = pathResolve(processCwd(), 'dist/server.mjs');
