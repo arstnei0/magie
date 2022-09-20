@@ -21,11 +21,11 @@ program
 
 let options;
 
-async function getConfig() {
+async function getConfig(mode: 'build' | 'dev') {
     const cwd = processCwd();
     const {
         config: configFile = 'magie.config.ts'
-    } = options
+    } = options;
     CheckFileExist : {
         const configFileFullPath = pathResolve(cwd, configFile);
         try {
@@ -47,18 +47,23 @@ async function getConfig() {
         });
 
         const config : MagieConfig = (await import(targetConfigFilePath)).default;
+
+        if (config.__magieDefineConfig) {
+            return config.__magieDefineConfig[mode];
+        }
+
         return config;
     }
 }
 
 async function startDevServer () {
-    const config = await getConfig();
+    const config = await getConfig('dev');
     await createDevServer(config);
 }
 
 program.command('build')
     .action(async () => {
-        const config = await getConfig();
+        const config = await getConfig('build');
         await build(config);
     });
 

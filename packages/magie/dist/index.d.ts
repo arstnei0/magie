@@ -17,10 +17,16 @@ interface MagieConfig {
         port?: number;
     };
     __MagieVite?: UserConfig;
+    __magieDefineConfig?: {
+        build?: MagieConfig;
+        dev?: MagieConfig;
+    };
+    define?: object;
 }
 
 declare function createDevServer(config: MagieConfig): Promise<void>;
 
-declare function defineConfig(config: MagieConfig): MagieConfig;
+declare type configFunction = (mode: 'build' | 'dev') => MagieConfig;
+declare function defineConfig(config: MagieConfig | configFunction): MagieConfig;
 
 export { MagieConfig, createDevServer, defineConfig };

@@ -28,7 +28,11 @@ export default async function build(config: MagieConfig) {
             build: {
                 outDir: 'dist/static'
             },
-            plugins: [config.vite.plugins, config.plugins]
+            plugins: [config.vite.plugins, config.plugins],
+            define: {
+                ...config.vite.define,
+                ...config.define
+            }
         });
 
         console.log(chalk.green('\n✔︎ Frontend has been build successfully!'))
@@ -80,6 +84,10 @@ export default async function build(config: MagieConfig) {
             format: 'esm',
         },
         plugins: [buildPlugin(dirname, config)],
+        define: {
+            ...config.vite.define,
+            ...config.define
+        }
     })) as any).output[0].code;
 
     const outFilePath = pathResolve(processCwd(), 'dist/server.mjs');

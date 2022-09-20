@@ -12,4 +12,9 @@ export default interface MagieConfig {
         port?: number
     },
     __MagieVite?: ViteConfig,
+    __magieDefineConfig?: {
+        build?: MagieConfig,
+        dev?: MagieConfig
+    },
+    define?: object
 };

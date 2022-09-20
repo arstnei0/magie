@@ -12,7 +12,11 @@ export async function createDevServer(config: MagieConfig) {
         server: {
             port: config.server.port
         },
-        plugins: [config.plugins, devPlugin(config)]
+        plugins: [config.plugins, devPlugin(config)],
+        define: {
+            ...config.vite.define,
+            ...config.define
+        }
     });
 
     viteServer.listen();

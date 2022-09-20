@@ -539,7 +539,11 @@ async function createDevServer(config) {
     server: {
       port: config.server.port
     },
-    plugins: [config.plugins, devPlugin(config)]
+    plugins: [config.plugins, devPlugin(config)],
+    define: {
+      ...config.vite.define,
+      ...config.define
+    }
   });
   viteServer.listen();
   console.log(source_default.red("\u2713 ") + source_default.green("Magie dev server starts successfully on port ") + source_default.blue(config.server.port) + source_default.green("!"));
@@ -592,7 +596,11 @@ async function build(config) {
       build: {
         outDir: "dist/static"
       },
-      plugins: [config.vite.plugins, config.plugins]
+      plugins: [config.vite.plugins, config.plugins],
+      define: {
+        ...config.vite.define,
+        ...config.define
+      }
     });
     console.log(source_default.green("\n\u2714\uFE0E Frontend has been build successfully!"));
   }
@@ -612,7 +620,11 @@ async function build(config) {
       target: "node",
       format: "esm"
     },
-    plugins: [buildPlugin(dirname, config)]
+    plugins: [buildPlugin(dirname, config)],
+    define: {
+      ...config.vite.define,
+      ...config.define
+    }
   })).output[0].code;
   const outFilePath = (0, import_path2.resolve)((0, import_process2.cwd)(), "dist/server.mjs");
   console.log(source_default.yellow("Writing server file..."));
@@ -624,7 +636,7 @@ async function build(config) {
 import_commander.program.name("magie").description("A fullstack framework powered by vite.").option("-c, --config <file>");
 import_commander.program.action(startDevServer);
 var options;
-async function getConfig() {
+async function getConfig(mode) {
   const cwd = (0, import_process3.cwd)();
   const {
     config: configFile = "magie.config.ts"
@@ -646,15 +658,18 @@ async function getConfig() {
       platform: "node"
     });
     const config = (await import(targetConfigFilePath)).default;
+    if (config.__magieDefineConfig) {
+      return config.__magieDefineConfig[mode];
+    }
     return config;
   }
 }
 async function startDevServer() {
-  const config = await getConfig();
+  const config = await getConfig("dev");
   await createDevServer(config);
 }
 import_commander.program.command("build").action(async () => {
-  const config = await getConfig();
+  const config = await getConfig("build");
   await build(config);
 });
 import_commander.program.command("prod").alias("serve").action(async () => {
