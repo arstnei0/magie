@@ -1,6 +1,6 @@
 {
     "name": "magie",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "scripts": {
         "build": "node dev.js",
         "dev": "node dev.js"
@@ -10,7 +10,7 @@
         "chalk": "^5.0.1",
         "commander": "^9.4.0",
         "esbuild": "^0.15.7",
-        "magistatic": "workspace:*",
+        "magistatic": "workspace:1.0.1",
         "typescript": "^4.8.3",
         "vite": "^3.0.0"
     },

@@ -1,6 +1,6 @@
 {
     "name": "magistatic",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "dependencies": {
         "mime": "^3.0.0",
         "tsup": "^6.2.3",

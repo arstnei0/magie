@@ -2,8 +2,9 @@
 import { cwd as processCwd } from "process";
 import { resolve as pathResolve } from "path";
 import { createReadStream, statSync } from "fs";
-import { getType } from "mime";
+import mime from "mime";
 import { createGzip } from "zlib";
+var { getType } = mime;
 function defaultErrHandler(req, res) {
   res.writeHead(404, "404 Not Found!");
   res.end("404 Not Found!");

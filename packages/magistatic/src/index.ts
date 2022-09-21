@@ -2,8 +2,10 @@ import { ServerResponse, IncomingMessage } from 'http';
 import { cwd as processCwd } from 'process';
 import { resolve as pathResolve } from 'path';
 import { createReadStream, statSync } from 'fs';
-import { getType } from 'mime';
+import mime from 'mime';
 import { createGzip } from 'zlib';
+
+const { getType } = mime;
 
 export interface Config {
     root?: string;

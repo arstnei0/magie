@@ -44,34 +44,9 @@ export default async function build(config: MagieConfig) {
     for (let plugin of [config.plugins].flat(100)) {
         if ((plugin as Plugin).backendEsbuildPlugins) esbuildPlugins.push((plugin as Plugin).backendEsbuildPlugins);
     }
-    
-    // await esBuild({
-    //     entryPoints: [config.frontend ?
-    //         pathResolve(dirname, 'build/standalone/frontend.ts') :
-    //         pathResolve(dirname, 'build/standalone/non-frontend.ts')
-    //     ],
-    //     platform: 'node',
-    //     format: 'esm',
-    //     bundle: true,
-    //     plugins: [
-    //         ...esbuildPlugins,
-    //         {
-    //             name: 'magie/server',
-    //             setup (build) {
-    //                 build.onResolve({ filter: /^\/virtual:magie-connect-handler$/ }, (args) => {
-    //                     return {
-    //                         path: pathResolve(processCwd(), config.backend.entry)
-    //                     };
-    //                 });
-    //             },
-    //         },
-    //     ],
-    //     outfile: pathResolve(processCwd(), 'dist/server.mjs'),
-    // });
-
 
     const fileContent = ((await viteBuild({
-        // ...config.vite,
+        ...config.vite,
         build: {
             ssr: (config.frontend ?
                     pathResolve(dirname, 'build/standalone/frontend.ts') :
