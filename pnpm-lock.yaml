@@ -59,7 +59,7 @@ importers:
   packages/test:
     specifiers:
       '@vitejs/plugin-vue': ^3.1.0
-      magie: workspace:*
+      magie: ^1.0.6
       typescript: ^4.8.3
       vue: ^3.2.39
     dependencies:

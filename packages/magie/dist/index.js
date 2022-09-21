@@ -29,15 +29,25 @@ function setConfig(config) {
 
 // src/plugin/devPlugin.ts
 function devPlugin(config) {
+  let sv;
   return [
     {
       name: "@magie/server",
-      enforce: "post",
       async configureServer(server) {
+        var _a, _b;
+        sv = server;
         server.middlewares.use(async (req, res, next) => {
           const module = await server.ssrLoadModule(config.backend.entry);
           module.default(req, res, next);
         });
+        (_b = (_a = await server.ssrLoadModule(config.backend.entry)) == null ? void 0 : _a.init) == null ? void 0 : _b.call(_a);
+      },
+      async handleHotUpdate(ctx) {
+        var _a, _b;
+        if (new RegExp(config.backend.entry).test(ctx.file)) {
+          (_b = (_a = await sv.ssrLoadModule(config.backend.entry)) == null ? void 0 : _a.init) == null ? void 0 : _b.call(_a);
+        }
+        return ctx.modules;
       }
     }
   ];
